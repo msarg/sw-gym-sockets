@@ -59,7 +59,7 @@ public:
       std::cout << "listen failed" << std::endl;
       exit(1);
     } else {
-      std::cout << "Server::start() - listening fd : " << _master_sock << std::endl;
+      printf("Server::start() - listening fd : %d\n", _master_sock);
     }
   }
 
@@ -102,19 +102,19 @@ public:
           }
 
           //Print requester info
-          std::cout << "Server::start() - accepted new connection: IP " << inet_ntoa(client_addr.sin_addr) << ", port " << client_addr.sin_port << std::endl;
+          printf("Server::start() - accepted new connection: IP %s, , port: %d\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
 
           //Now, what to do with this new connection fd? 
           std::string msg{"Hello from the server!"};
           int count = send(new_conn_fd, msg.data(), msg.size()+1, 0 /*flags*/);
           if(count > 0) {
-            std::cout << "Server::start() - succssfully sent " << count << " bytes" << std::endl;
+            printf("Server::start() - succssfully sent: %d bytes\n", count);
           }
 
           char buffer[1024];
           count = read(new_conn_fd, buffer, 256); //reads upto 256 bytes
           if (count > 0) {
-            std::cout << "Server::start() - msg read: " << std::string(buffer, count) << std::endl;
+            printf("Server::start() - msg read: %s\n", std::string(buffer, count).data());
           }
 
           close(new_conn_fd);
@@ -123,7 +123,7 @@ public:
         std::cout << "Server::start() - end." << std::endl;
 
       } catch (std::exception& ex) {
-        std::cout << "server ex: " << ex.what() << std::endl;
+        printf("server ex: %s\n", ex.what());
         return;
       }
     }).detach();

@@ -28,6 +28,7 @@ int main(int argc, char** argv)
     server.start();
     client.connect("127.0.0.1", SERVER_PORT);
     client.send("hello! I'm the client");
+    std::this_thread::sleep_for(3s);
 
   } catch(std::exception& ex) {
     std::cout << "Exception: " << ex.what() << std::endl;

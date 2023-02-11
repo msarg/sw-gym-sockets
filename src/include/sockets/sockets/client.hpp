@@ -33,7 +33,7 @@ public:
       return false;
     }
 
-    std::cout << "Client::connect() - socket fd: " << sock << std::endl;
+    printf("Client::connect() - socket fd: %d\n", sock);
 
     //Connect on this socket
 
@@ -65,7 +65,7 @@ public:
     }
     const int count = ::send(_sock, msg.data(), msg.size() +1, 0);
     if(count > 0) {
-      std::cout << "Client::send() - sent " << count << " bytes" << std::endl;
+      printf("Client::send() - sent %d bytes\n", count);
       return true;
     } else {
       std::cout << "Client cannot send!\n";
