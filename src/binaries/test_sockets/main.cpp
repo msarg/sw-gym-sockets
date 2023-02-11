@@ -27,11 +27,13 @@ int main(int argc, char** argv)
     server.init(server_cfg);
     server.start();
     client.connect("127.0.0.1", SERVER_PORT);
-    client.send("hello! I'm the client");
+    if(!client.send("hello! I'm the client")) {
+      throw std::runtime_error("Client cannot send.");
+    }
     std::this_thread::sleep_for(3s);
 
   } catch(std::exception& ex) {
-    std::cout << "Exception: " << ex.what() << std::endl;
+    printf("Test failed: %s\n", ex.what());
   }
   return 0;
 }
