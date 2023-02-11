@@ -73,13 +73,13 @@ public:
     }
   }
 
-private:
   std::string read() {
     char buffer[1024];
     int count = ::read(_sock, buffer, 1024);
     return std::string(buffer, count);
   }
 
+private:
   // uint16_t _port{0};
   int _sock = -1;
 };
