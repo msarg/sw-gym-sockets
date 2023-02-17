@@ -1,9 +1,11 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <mutex>
 #include <string>
 #include <sstream>
 #include <chrono>
+#include <unordered_map>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -11,7 +13,9 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h>
-// #include <format>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <fcntl.h>
 
 using namespace std::chrono_literals;
 
@@ -103,21 +107,13 @@ public:
 
           //Print requester info
           printf("Server::start() - accepted new connection: IP %s, , port: %d\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
-
-          //Now, what to do with this new connection fd? 
-          std::string msg{"Hello from the server!"};
-          int count = send(new_conn_fd, msg.data(), msg.size()+1, 0 /*flags*/);
-          if(count > 0) {
-            printf("Server::start() - succssfully sent: %d bytes\n", count);
+          {
+            //Set it in non-blocking mode
+            auto flags = fcntl(new_conn_fd, F_GETFL);
+            fcntl(new_conn_fd, flags, O_NONBLOCK);
+            std::lock_guard<std::mutex> lock{_fds_door};
+            _fds.insert({new_conn_fd, client_addr});
           }
-
-          char buffer[1024];
-          count = read(new_conn_fd, buffer, 256); //reads upto 256 bytes
-          if (count > 0) {
-            printf("Server::start() - msg read: %s\n", std::string(buffer, count).data());
-          }
-
-          close(new_conn_fd);
         }
 
         std::cout << "Server::start() - end." << std::endl;
@@ -127,6 +123,65 @@ public:
         return;
       }
     }).detach();
+
+    //Second thread: check fds
+    std::thread([this](){
+      fd_set fds_set;
+      struct timeval timeout{0, 0};
+      while(!_done) {
+        try {
+          FD_ZERO(&fds_set);
+          //Loop over fds and add them
+          int nfd = 0;
+          {
+            std::lock_guard<std::mutex> lock{_fds_door};
+            for(const auto& elem: _fds){
+              int fd = elem.first;
+              FD_SET(fd, &fds_set);
+              if(fd >= nfd) nfd = fd +1;
+            }
+          }
+
+          int rslt = select(nfd, &fds_set, NULL, NULL, &timeout);
+          if(rslt < 0) {
+            perror("select");
+          }
+          if(rslt > 0) {
+            for(int i =0; i < nfd; ++i) {
+              if(FD_ISSET(i, &fds_set)) {
+                //TODO: Read its data and pass it to the APP
+                char buffer[1024];
+                int count = read(i, buffer, 256); //reads upto 256 bytes
+                if (count > 0) {
+                  //TODO: pass the data to the app:
+
+                  printf("Server::start() - msg read: %s\n", std::string(buffer, count).data());
+                  std::string msg{"Hello from the server!"};
+                  int count = send(i, msg.data(), msg.size()+1, 0 /*flags*/);
+                  if(count > 0) {
+                    printf("Server::start() - succssfully sent: %d bytes\n", count);
+                  }
+                } else if(count == 0) {
+                  //Ready with no data to read means client closed the connection
+                  printf("read 0 bytes from fd %d - Closing it\n", i);
+                  close(i);
+                  std::lock_guard<std::mutex> lock{_fds_door};
+                  _fds.erase(i);
+                }
+              }
+            }
+          } else {
+            //no ready fds
+            std::this_thread::sleep_for(100us);
+          }
+        } catch(const std::exception& ex) {
+          printf("select thread - exception %s", ex.what());
+        }
+      }
+    }).detach();
+
+    //Wait for a while until server is up
+    std::this_thread::sleep_for(100us);
   }
 
 private:
@@ -171,4 +226,6 @@ private:
   std::atomic<bool> _done{false};
   std::thread _server;
   int _master_sock{-1};
+  std::unordered_map<int, struct sockaddr_in> _fds;
+  std::mutex _fds_door;
 };
