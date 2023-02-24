@@ -30,6 +30,12 @@ public:
     IP ip;
   };
 
+  struct counters {
+    std::atomic<uint64_t> received_bytes{0};
+    std::atomic<uint64_t> received_msgs{0};
+    std::atomic<uint64_t> clients_count{0};
+  };
+
   Server() = default;
   Server(const Server&) = delete;
   Server(Server&&) = delete;
@@ -45,12 +51,17 @@ public:
   template<typename T>
   void start(T& app);
 
+  const counters& get_counters() const noexcept {
+    return _counters;
+  }
+
 private:
   int _get_master_socket();
   bool _set_address(sockaddr_in& addr);
   std::pair<fd_set, int> _set_fds();
 
   config _cfg;
+  counters _counters;
   std::atomic<bool> _done{false};
   std::thread _server;
   int _master_sock{-1};
@@ -86,6 +97,7 @@ void Server::start(T& app) {
           continue;
         }
 
+        ++_counters.clients_count;
         //Print requester info
         printf("Server::start() - accepted new connection: IP %s, , port: %d\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
         {
@@ -124,13 +136,11 @@ void Server::start(T& app) {
               int count = read(i, buffer, 256); //reads upto 256 bytes
 
               if (count > 0) {
-                std::string msg{"Hello from the server!"};
-                if(send(i, msg.data(), msg.size()+1, 0 /*flags*/) == 0) {
-                  printf("Server::start() - cannot send\n");
-                }
+                _counters.received_bytes += count;
+                ++_counters.received_msgs;
 
                 //Move the msg to the upstream app
-                app(std::move(msg));
+                app(std::move(std::string(buffer, count)));
               } else {
                 //Ready with no data to read means client closed the connection
                 printf("Closing fd %d\n", i);

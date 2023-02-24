@@ -36,23 +36,35 @@ int main(int argc, char** argv)
     server_cfg.ip = "127.0.0.1";
     server.init(server_cfg);
     server.start(dummyApp);
-    // std::this_thread::sleep_for(1s);
+    uint64_t sent_bytes{0};
 
     {
       Client client;
       client.connect("127.0.0.1", SERVER_PORT);
-      if(!client.send("hello! I'm the client")) {
+      const std::string msg1{"hello! I'm the client"};
+      if(!client.send(msg1)) {
         throw std::runtime_error("Client cannot send.");
       }
-      printf("client received: %s\n", client.read().data());
+      sent_bytes += msg1.size() +1;
+      std::this_thread::sleep_for(10ms);
+      if( server.get_counters().received_bytes != sent_bytes ) {
+        printf("server::received_bytes: %ld, sent_bytes: %ld\n", server.get_counters().received_bytes.load(), sent_bytes );
+        throw std::runtime_error("test failed!");
+      }
       std::this_thread::sleep_for(3s);
 
       Client client2;
       client2.connect("127.0.0.1", SERVER_PORT);
-      if(!client2.send("hello! I'm the other client")) {
+      const std::string msg2{"hello! I'm the other client"};
+      if(!client2.send(msg2)) {
         throw std::runtime_error("Client cannot send.");
       }
-      printf("client received: %s\n", client2.read().data());
+      sent_bytes += msg2.size() +1;
+      std::this_thread::sleep_for(10ms);
+      if( server.get_counters().received_bytes != sent_bytes ) {
+        printf("server::received_bytes: %ld, sent_bytes: %ld\n", server.get_counters().received_bytes.load(), sent_bytes);
+        throw std::runtime_error("test failed!");
+      }
     }
     std::this_thread::sleep_for(5s);
 
