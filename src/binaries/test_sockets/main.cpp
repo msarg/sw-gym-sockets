@@ -1,5 +1,5 @@
-#include "../../include/sockets/sockets/server.hpp"
-#include "../../include/sockets/sockets/client.hpp"
+#include <sockets/server.hpp>
+#include <sockets/client.hpp>
 #include <chrono>
 #include <exception>
 #include <signal.h>
@@ -14,17 +14,28 @@ void sig_handler(int sig) {
 }
 uint16_t SERVER_PORT{2004};
 
+class Application{
+  public:
+  Application()=default;
+  ~Application()=default;
+  void operator()(std::string&& msg) {
+    printf("Got - %s\n", msg.data());
+  }
+};
+
 int main(int argc, char** argv)
 {
   signal(SIGPIPE, sig_handler);
 
   try {
     Server server;
+    Application dummyApp;
 
     Server::config server_cfg;
     server_cfg.port = SERVER_PORT;
+    server_cfg.ip = "127.0.0.1";
     server.init(server_cfg);
-    server.start();
+    server.start(dummyApp);
     // std::this_thread::sleep_for(1s);
 
     {
