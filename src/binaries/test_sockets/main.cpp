@@ -49,7 +49,7 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(10ms);
       if( server.get_counters().received_bytes != sent_bytes ) {
         printf("server::received_bytes: %ld, sent_bytes: %ld\n", server.get_counters().received_bytes.load(), sent_bytes );
-        throw std::runtime_error("test failed!");
+        throw;
       }
       std::this_thread::sleep_for(3s);
 
@@ -63,13 +63,14 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(10ms);
       if( server.get_counters().received_bytes != sent_bytes ) {
         printf("server::received_bytes: %ld, sent_bytes: %ld\n", server.get_counters().received_bytes.load(), sent_bytes);
-        throw std::runtime_error("test failed!");
+        throw;
       }
     }
     std::this_thread::sleep_for(5s);
 
   } catch(std::exception& ex) {
-    printf("Test failed: %s\n", ex.what());
+    printf("TEST FAILED: %s\n", ex.what());
   }
+  printf("TEST PASSED!");
   return 0;
 }
