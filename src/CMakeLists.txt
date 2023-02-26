@@ -1,3 +1,4 @@
 add_subdirectory(binaries/test_sockets)
+add_subdirectory(binaries/say_hello)
 add_subdirectory(libraries/sockets)
 add_subdirectory(libraries/say_hello)
