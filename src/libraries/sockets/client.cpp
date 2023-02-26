@@ -74,3 +74,9 @@ std::string Client::read() {
   int count = ::read(_sock, buffer, 1024);
   return std::string(buffer, count);
 }
+
+void Client::shutdown() {
+  if(_sock == -1) return;
+  close(_sock);
+  _sock = -1;
+}

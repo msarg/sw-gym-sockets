@@ -5,7 +5,7 @@ public:
   Client() = default;
   ~Client();
 
-  // void init() {}
+  void shutdown();
   bool connect(const std::string& server_ip, const uint16_t server_port);
   bool send(const std::string msg);
   std::string read();
