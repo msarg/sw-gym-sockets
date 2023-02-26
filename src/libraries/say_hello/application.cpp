@@ -31,6 +31,7 @@ void Application::start() {
 
   while(!_done) {
     //logger
+    std::cout << _counters;
     std::this_thread::sleep_for(2s);
   }
 }

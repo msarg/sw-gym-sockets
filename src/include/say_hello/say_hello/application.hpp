@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <sockets/server.hpp>
 #include <sockets/client.hpp>
 
@@ -16,6 +18,12 @@ public:
   struct counters {
     std::atomic<uint64_t> received_msgs{0};
     std::atomic<uint64_t> game_master{0};
+
+    friend std::ostream& operator<<(std::ostream& os, const struct counters& rhs) {
+      os << "received_msgs: " << rhs.received_msgs << "\n"
+         << "game_master  : " << rhs.game_master   << "\n";
+      return os;
+    }
   };
 
   Application() = default;
