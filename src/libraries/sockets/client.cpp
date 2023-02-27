@@ -13,16 +13,10 @@
 #include <sockets/client.hpp>
 
 Client::~Client() {
-  std::cout << "client shutdown\n";
-  if (_sock != -1) {
-    close(_sock);
-  }
-  std::cout << "client shutdown - Done\n";
+  shutdown();
 };
 
 bool Client::connect(const std::string& server_ip, const uint16_t server_port) {
-  std::cout << "Client::connect()\n";
-
   //you need a socket
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if(sock == -1) {
@@ -41,7 +35,7 @@ bool Client::connect(const std::string& server_ip, const uint16_t server_port) {
   server_addr.sin_port = htons(server_port);
   // server_addr.sin_addr.s_addr = INADDR_ANY;
   if(inet_pton(AF_INET, server_ip.data() , &server_addr.sin_addr) != 1){
-    std::cout << "Error: cannot convert IP to network address.\n";
+    logger::error("Client::connect() - cannot convert IP to network address.");
     return false;
   }
 
@@ -57,7 +51,7 @@ bool Client::connect(const std::string& server_ip, const uint16_t server_port) {
 
 bool Client::send(const std::string msg) {
   if(_sock == -1) {
-    std::cout << "Cannot send; no valid socket!\n";
+    logger::error("Client::send() - Cannot send; no valid socket!");
     return false;
   }
   const int count = ::send(_sock, msg.data(), msg.size() +1, 0);
@@ -65,7 +59,7 @@ bool Client::send(const std::string msg) {
     logger::info("Client::send() - sent %d bytes\n", count);
     return true;
   } else {
-    std::cout << "Client cannot send!\n";
+    logger::error("Client::send() - Client cannot send!");
     return false;
   }
 }

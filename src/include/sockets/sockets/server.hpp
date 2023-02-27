@@ -78,7 +78,7 @@ void Server::start(T& app) {
   using namespace std::chrono_literals;
   std::thread([this](){
     if(_master_sock == -1) {
-      std::cout << "Fatal: server doesn't have a valid master socket fd! exit.\n";
+      logger::error("Server::start() - server doesn't have a valid master socket fd! exit.");
       return;
     }
 
@@ -112,10 +112,10 @@ void Server::start(T& app) {
         }
       }
 
-      std::cout << "Server::start() - end." << std::endl;
+      logger::info("Server::start() - end.");
 
     } catch (std::exception& ex) {
-      logger::error("server ex: %s\n", ex.what());
+      logger::error("Server::start(): %s\n", ex.what());
       return;
     }
   }).detach();
@@ -148,7 +148,7 @@ void Server::start(T& app) {
                 std::lock_guard<std::mutex> lock{_fds_door};
                 if(_fds.count(i)) {
                   //Ready with no data to read means client closed the connection
-                  logger::debug("Closing fd %d\n", i);
+                  logger::debug("Server::start() - closing fd %d\n", i);
                   close(i);
                   _fds.erase(i);
                 }
@@ -160,7 +160,7 @@ void Server::start(T& app) {
           std::this_thread::sleep_for(100us); //TODO: move it to timeout
         }
       } catch(const std::exception& ex) {
-        logger::error("select thread - exception %s", ex.what());
+        logger::error("Server::start() - select thread - exception %s", ex.what());
       }
     }
   }).detach();

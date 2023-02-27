@@ -23,22 +23,22 @@ void Server::init(const config& cfg) {
   */
   //"calls listen() to notify the kernel of its willingness to accept incoming connections."
   if( listen(_master_sock, BACKLOG_LENGTH) < -1 ) {
-    std::cout << "listen failed" << std::endl;
+    logger::error("Server::init() - listen failed");
     exit(1);
   } else {
-    printf("Server::start() - listening fd : %d\n", _master_sock);
+    logger::info("Server::start() - listening fd : %d", _master_sock);
   }
 }
 
 void Server::shutdown() {
-  std::cout << "Server::shutdown()\n";
+  logger::info("Server::shutdown() - start");
   _done = true;
 
   if(_master_sock > 0) {
     close(_master_sock);
     _master_sock = -1;
   }
-  std::cout << "Server::shutdown() - done\n";
+  logger::info("Server::shutdown() - done");
 }
 
 
@@ -59,7 +59,7 @@ int Server::_get_master_socket()
   */
   sockaddr_in addr;
   if(!_set_address(addr)) {
-    std::cout << "Fatal: Server - cannot set addess\n";
+    logger::error("Server::_get_master_socket() - cannot set addess");
     return -1;
   }
 
