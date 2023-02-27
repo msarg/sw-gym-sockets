@@ -48,10 +48,10 @@ void Application::operator()(std::string&& data) {
   ++_counters.received_msgs;
   try{
     //Process the data
-    printf("Application::operator() - received msg: %s\n", data.c_str());
+    logger::info("Application::operator() - received msg: %s\n", data.c_str());
     int n = std::atoi(data.c_str());
     if(n == _cfg.id) {
-      printf("Application::operator() - My turn ;)\n");
+      logger::info("Application::operator() - My turn ;)\n");
       ++_counters.game_master;
       while(n == _cfg.id) n = rand() % _cfg.apps_count;
       std::this_thread::sleep_for(1s);
@@ -60,6 +60,6 @@ void Application::operator()(std::string&& data) {
     }
     _client.send(std::to_string(n));
   } catch (const std::exception& ex) {
-    printf("ERROR: Application::operator() - %s\n", ex.what());
+    logger::info("ERROR: Application::operator() - %s\n", ex.what());
   }
 }

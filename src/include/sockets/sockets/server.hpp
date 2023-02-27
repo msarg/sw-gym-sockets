@@ -17,6 +17,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 
+#include "logger.hpp"
 
 // class IP;
 using IP = std::string; //TODO: to be a class
@@ -101,7 +102,7 @@ void Server::start(T& app) {
 
         ++_counters.clients_count;
         //Print requester info
-        printf("Server::start() - accepted new connection: IP %s, , port: %d\n", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
+        logger::info("Server::start() - accepted new connection: IP %s, , port: %d", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
         {
           //Set it in non-blocking mode
           auto flags = fcntl(new_conn_fd, F_GETFL);
@@ -114,7 +115,7 @@ void Server::start(T& app) {
       std::cout << "Server::start() - end." << std::endl;
 
     } catch (std::exception& ex) {
-      printf("server ex: %s\n", ex.what());
+      logger::error("server ex: %s\n", ex.what());
       return;
     }
   }).detach();
@@ -145,7 +146,7 @@ void Server::start(T& app) {
                 app(std::move(std::string(buffer, count)));
               } else {
                 //Ready with no data to read means client closed the connection
-                printf("Closing fd %d\n", i);
+                logger::debug("Closing fd %d\n", i);
                 close(i);
                 std::lock_guard<std::mutex> lock{_fds_door};
                 _fds.erase(i);
@@ -157,7 +158,7 @@ void Server::start(T& app) {
           std::this_thread::sleep_for(100us); //TODO: move it to timeout
         }
       } catch(const std::exception& ex) {
-        printf("select thread - exception %s", ex.what());
+        logger::error("select thread - exception %s", ex.what());
       }
     }
   }).detach();

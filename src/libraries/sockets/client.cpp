@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <sockets/logger.hpp>
 #include <sockets/client.hpp>
 
 Client::~Client() {
@@ -29,7 +30,7 @@ bool Client::connect(const std::string& server_ip, const uint16_t server_port) {
     return false;
   }
 
-  printf("Client::connect() - socket fd: %d\n", sock);
+  logger::info("Client::connect() - socket fd: %d\n", sock);
 
   //Connect on this socket
 
@@ -61,7 +62,7 @@ bool Client::send(const std::string msg) {
   }
   const int count = ::send(_sock, msg.data(), msg.size() +1, 0);
   if(count > 0) {
-    printf("Client::send() - sent %d bytes\n", count);
+    logger::info("Client::send() - sent %d bytes\n", count);
     return true;
   } else {
     std::cout << "Client cannot send!\n";

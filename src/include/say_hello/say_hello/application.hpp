@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <sockets/logger.hpp>
 #include <sockets/server.hpp>
 #include <sockets/client.hpp>
 
