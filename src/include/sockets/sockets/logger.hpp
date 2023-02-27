@@ -22,6 +22,11 @@ namespace logger {
     printf("%s: %s\n", prefix, buffer);
   }
 
+  template<typename T>
+  static void _log(const char* prefix, const T& t) {
+    printf("%s: %s\n", prefix, t);
+  }
+
   template<typename... Args>
   static void info(const Args&... args) {
     _log("INFO",  args...);
