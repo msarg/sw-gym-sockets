@@ -1,11 +1,19 @@
 #include <iostream>
+#include <signal.h>
 
 #include <sockets/client.hpp>
 #include <sockets/server.hpp>
 #include <say_hello/application.hpp>
 
+void sig_handler(int s) {
+  printf("Catched signal %d\n", s);
+  exit(1);
+}
+
 int main(int argc, char** argv)
 {
+  signal(SIGINT, sig_handler);
+
   try {
     Application app;
     Application::config cfg;
