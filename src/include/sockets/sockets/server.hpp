@@ -145,11 +145,13 @@ void Server::start(T& app) {
                 //Move the msg to the upstream app
                 app(std::move(std::string(buffer, count)));
               } else {
-                //Ready with no data to read means client closed the connection
-                logger::debug("Closing fd %d\n", i);
-                close(i);
                 std::lock_guard<std::mutex> lock{_fds_door};
-                _fds.erase(i);
+                if(_fds.count(i)) {
+                  //Ready with no data to read means client closed the connection
+                  logger::debug("Closing fd %d\n", i);
+                  close(i);
+                  _fds.erase(i);
+                }
               }
             }
           }
